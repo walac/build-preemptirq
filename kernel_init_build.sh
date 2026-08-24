@@ -34,5 +34,6 @@ for k in "${!config_files[@]}"; do
     for c in ${extra_configs[$k]}; do
         ./scripts/config --file "build/$k/.config" --enable "$c"
     done
+    ./scripts/config --file "build/$k/.config" --disable CONFIG_DEBUG_PREEMPT
 done
 
