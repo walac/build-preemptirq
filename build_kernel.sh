@@ -2,10 +2,9 @@
 
 nc=$(nproc)
 
-variations="no-preemptirq preemptirq no-preemptirq-rt preemptirq-rt"
-
-for i in $variations; do
-    make "O=build/$i" olddefconfig
-    make "O=build/$i" "-j$nc"
-    make "O=build/$i" "-j$nc" modules_install
+for i in build/*; do
+    config=$(basename "$i")
+    make "O=build/$config" olddefconfig
+    make "O=build/$config" "-j$nc"
+    make "O=build/$config" "-j$nc" modules_install
 done
