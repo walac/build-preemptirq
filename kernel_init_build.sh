@@ -29,14 +29,8 @@ declare -A extra_configs=(
     [dbg-preempt-rt]="CONFIG_BPF_SYSCALL CONFIG_DEBUG_INFO_BTF CONFIG_DEBUG_INFO_BTF_MODULES CONFIG_DEBUG_PREEMPT"
 )
 
-if ! test -d build/; then
-    mkdir build
-    for k in "${!config_files[@]}"; do
-        mkdir build/"$k"
-    done
-fi
-
 for k in "${!config_files[@]}"; do
+    mkdir -p build/"$k"
     cp "${config_files[$k]}" build/"$k"/.config
     ./scripts/config --file "build/$k/.config" --set-str CONFIG_LOCALVERSION "-$k"
     # Configs prefixed with ! are disabled; others are enabled
