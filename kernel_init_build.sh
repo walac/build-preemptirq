@@ -1,22 +1,37 @@
 #!/bin/bash -e
 
-git checkout origin/os-build
-make dist-configs
-make mrproper
-git checkout preemptirq
+case "${1:-}" in
+    "")
+        use_vng=false
+        ;;
+    --vng)
+        use_vng=true
+        ;;
+    *)
+        echo "Usage: $0 [--vng]" >&2
+        exit 2
+        ;;
+esac
 
-kernel_version=$(find redhat/configs/ -name 'kernel-*-x86_64.config' | head -1 | xargs basename | sed -e 's/kernel-\([^-]\+\)-x86_64.config/\1/')
+if ! "$use_vng"; then
+    git checkout origin/os-build
+    make dist-configs
+    make mrproper
+    git checkout preemptirq
+    kernel_version=$(find redhat/configs/ -name 'kernel-*-x86_64.config' | head -1 | xargs basename | sed -e 's/kernel-\([^-]\+\)-x86_64.config/\1/')
 
-declare -A config_files=(
-    [no-preemptirq]="redhat/configs/kernel-$kernel_version-x86_64.config"
-    [preemptirq]="redhat/configs/kernel-$kernel_version-x86_64.config"
-    [tracer]="redhat/configs/kernel-$kernel_version-x86_64.config"
-    [dbg-preempt]="redhat/configs/kernel-$kernel_version-x86_64.config"
-    [no-preemptirq-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
-    [preemptirq-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
-    [tracer-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
-    [dbg-preempt-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
-)
+    declare -A config_files=(
+        [no-preemptirq]="redhat/configs/kernel-$kernel_version-x86_64.config"
+        [preemptirq]="redhat/configs/kernel-$kernel_version-x86_64.config"
+        [tracer]="redhat/configs/kernel-$kernel_version-x86_64.config"
+        [dbg-preempt]="redhat/configs/kernel-$kernel_version-x86_64.config"
+        [no-preemptirq-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
+        [preemptirq-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
+        [tracer-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
+        [dbg-preempt-rt]="redhat/configs/kernel-$kernel_version-x86_64-rt.config"
+    )
+
+fi
 
 declare -A extra_configs=(
     [no-preemptirq]="EXPERT BPF_SYSCALL DEBUG_INFO_BTF DEBUG_INFO_BTF_MODULES !DEBUG_PREEMPT"
@@ -29,9 +44,13 @@ declare -A extra_configs=(
     [dbg-preempt-rt]="EXPERT BPF_SYSCALL DEBUG_INFO_BTF DEBUG_INFO_BTF_MODULES DEBUG_PREEMPT PREEMPT_RT"
 )
 
-for k in "${!config_files[@]}"; do
+for k in "${!extra_configs[@]}"; do
     mkdir -p build/"$k"
-    cp "${config_files[$k]}" build/"$k"/.config
+    if "$use_vng"; then
+        KBUILD_OUTPUT=build/"$k" vng -k
+    else
+        cp "${config_files[$k]}" build/"$k"/.config
+    fi
     ./scripts/config --file "build/$k/.config" --set-str LOCALVERSION "-$k"
     # Configs prefixed with ! are disabled; others are enabled
     for c in ${extra_configs[$k]}; do
@@ -42,4 +61,3 @@ for k in "${!config_files[@]}"; do
         fi
     done
 done
-
