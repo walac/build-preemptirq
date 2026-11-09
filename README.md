@@ -22,8 +22,8 @@ support), not inside this repo.
   files from the kernel tree's dist configs (regular config for the two
   non-RT variants, `-rt` config for the two RT variants), tags each with a
   distinct `CONFIG_LOCALVERSION`, and enables the extra options each
-  variant needs (`CONFIG_BPF_SYSCALL` for all four; `CONFIG_TRACE_PREEMP_TOGGLE`
-  and `CONFIG_TRACE_IRQFLAGS_TOGGLE` additionally for the two variants with
+  variant needs (`CONFIG_BPF_SYSCALL` for all four; `CONFIG_PREEMPT_TRACEPOINTS`
+  and `CONFIG_IRQFLAGS_TRACEPOINTS` additionally for the two variants with
   the preemptirq feature).
 - `build_kernel.sh` — runs `olddefconfig`, builds, and `modules_install`
   for each of the four `build/<variant>` output directories.
